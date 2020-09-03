@@ -2,45 +2,42 @@ package controller
 
 import (
 	"encoding/json"
-	// "fmt"
+	"fmt"
+	"html/template"
 	"io/ioutil"
 	"log"
 	"net/http"
 )
+
+type Artist struct {
+	Id        int    `json:"id"`
+	Name      string `json:"name"`
+	Image     string `json:"image"`
+	Members   string `json:"members"`
+	Locations string `json:"locations"`
+	Relations string `json:"relations"`
+	Date 	  int	 `json:"creationDate"`	
+}
 
 func create() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		if r.Method == "GET" {
 
+			templates := template.Must(template.ParseGlob("view/*.html"))
+
 			artists := DecodeArrayMap("https://groupietrackers.herokuapp.com/api/artists")
-			relation := DecodeMap("https://groupietrackers.herokuapp.com/api/relation")
 
-			json.NewEncoder(w).Encode(artists)
-			json.NewEncoder(w).Encode(relation)
+			params := map[string]interface{}{"Artists": artists}
 
-			// index := relation["index"].([]interface{})
+			templates.ExecuteTemplate(w, "templates.html", params)
 
-			// for i := range index {
-			// 	if i == 0 {
-			// 		json.NewEncoder(w).Encode(index[i])
-			// 		fmt.Println(index[i])
-			// 	}
-			// }
+			fmt.Println(params)
 
-			// var d map[string]interface{}
-
-			// for i := range artists {
-			// 	if i == 0 {
-			// 		d = artists[i]
-			// 		json.NewEncoder(w).Encode(d)
-			// 		fmt.Println(d)
-			// }
-			// }
 		}
 	}
 }
-func DecodeArrayMap(url string) []map[string]interface{} {
+func DecodeArrayMap(url string) []Artist {
 	response, err := http.Get(url)
 	if err != nil {
 		log.Fatal(err)
@@ -49,34 +46,8 @@ func DecodeArrayMap(url string) []map[string]interface{} {
 	if err != nil {
 		log.Fatal(err)
 	}
-	var f []map[string]interface{}
+	var artists []Artist
 
-	json.Unmarshal(data, &f)
-	return f
+	json.Unmarshal(data, &artists)
+	return artists
 }
-func DecodeMap(url string) map[string]interface{} {
-	response, err := http.Get(url)
-	if err != nil {
-		log.Fatal(err)
-	}
-	data, err := ioutil.ReadAll(response.Body)
-	if err != nil {
-		log.Fatal(err)
-	}
-	var f map[string]interface{}
-
-	json.Unmarshal(data, &f)
-	return f
-}
-// func NotR(i int) int {
-// 	var nums []int
-// 	nums = append(nums, i)
-
-// 	for j := range nums {
-// 		if i != nums[j] {
-// 			return i
-// 		}
-// 	}
-// 	fmt.Println(nums)
-	
-// }
